@@ -1,0 +1,23 @@
+immediate future
+----------------
+
+- configuration for everything
+  (gerrit ssh key, nickname/etc, channels to join, "default" gerrit output
+   channel)
+- route gerrit messages to a configurable set of channels, based on the project
+  (always the default one though)
+- color project names/branch names (see python bot for reference), should be
+  configurable
+
+further off
+-----------
+
+- get gerrit subject from change-id (I<hash>). might be difficult before Qt's
+  gerrit upgrades and we get a REST API.
+- some kind of IRC interface for configuring projects channels (to avoid restarting)
+
+long term
+---------
+
+- store reviewer/contributor statistics in a bunch of interesting ways
+- offer a web UI to view all this
