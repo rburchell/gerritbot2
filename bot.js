@@ -2,20 +2,22 @@
 var irc = require("irc")
 var gerrit = require("./gerrit")
 var https = require("https")
+var config = require("./config")
 
 function log(data) {
     console.log("bot: " + data)
 }
 
-var client = new irc.Client("irc.chatspike.net", "qt_gerrit", {
+var client = new irc.Client(config.ircServer, "qt_gerrit", {
     userName: "qt_gerrit",
     realName: "Qt Project IRC bot",
-    port: 6697,
+    port: config.ircServerPort,
+    password: config.ircServerPassword,
     showErrors: true,
     autoRejoin: true,
     autoConnect: true,
-    channels: [ "#qt-gerrit" ],
-    secure: true,
+    channels: config.ircChannels,
+    secure: config.ircUseSsl,
     selfSigned: true,
     certExpired: true,
     floodProtection: true,
@@ -61,16 +63,20 @@ client.addListener('message',  function (from,  to,  message) {
     }
 });
 
+client.addListener('error', function(message) {
+    log('irc error: ',  message);
+});
+
 gerrit.on("comment", function(comment) {
-    client.say("#qt-gerrit", comment)
+    client.say(config.ircChannels[0], comment)
 })
 gerrit.on("merged", function(merged) {
-    client.say("#qt-gerrit", merged)
+    client.say(config.ircChannels[0], merged)
 })
 gerrit.on("created", function(created) {
-    client.say("#qt-gerrit", created)
+    client.say(config.ircChannels[0], created)
 })
 gerrit.on("abandoned", function(abandoned) {
-    client.say("#qt-gerrit", abandoned)
+    client.say(config.ircChannels[0], abandoned)
 })
 

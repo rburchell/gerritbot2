@@ -1,6 +1,7 @@
 var ssh = require("ssh2")
 var events = require("events")
 var irc = require("irc")
+var config = require("./config")
 
 var emitter = new events.EventEmitter
 
@@ -114,7 +115,7 @@ ssh.prototype.reconnect = function() {
         host: "codereview.qt-project.org",
         port: 29418,
         username: 'w00t',
-        privateKey: require('fs').readFileSync("/Users/burchr/.ssh/id_macbook_rsa")
+        privateKey: require('fs').readFileSync(config.gerritSshKey)
     });
 }
 
