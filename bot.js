@@ -3,10 +3,8 @@ var irc = require("irc")
 var gerrit = require("./gerrit")
 var https = require("https")
 var config = require("./config")
-
-function log(data) {
-    console.log("bot: " + data)
-}
+var log = require("./log.js")
+log.areaName = "bot"
 
 var client = new irc.Client(config.ircServer, "qt_gerrit", {
     userName: "qt_gerrit",
@@ -28,26 +26,26 @@ var client = new irc.Client(config.ircServer, "qt_gerrit", {
 })
 
 client.addListener('message',  function (from,  to,  message) {
-    log(from + ' => ' + to + ': ' + message);
+    log.debug(from + ' => ' + to + ': ' + message);
 
     // jira bugs
     var bugs = message.match(/\b(Q[A-Z]+\-[0-9]+)\b/g)
     if (bugs) {
         bugs.forEach(function(bug) {
-            log("https://bugreports.qt-project.org/rest/api/2/issue/" + bug)
+            log.debug("https://bugreports.qt-project.org/rest/api/2/issue/" + bug)
             https.get("https://bugreports.qt-project.org/rest/api/2/issue/" + bug, function(res) {
                 res.on("data", function(chunk) {
-                    //log("BODY for bug " + bug + ": " + chunk);
+                    //log.debug("BODY for bug " + bug + ": " + chunk);
                     var json
                     try {
                         json = JSON.parse(chunk)
                     } catch (err) {
-                        log("Error retrieving " + bug + ", body: " + chunk)
+                        log.error("Error retrieving " + bug + ", body: " + chunk)
                         return
                     }
 
                     if (!json["fields"]) {
-                        log("Malformed response for bug " + bug)
+                        log.error("Malformed response for bug " + bug)
                         return
                     }
 
@@ -55,7 +53,7 @@ client.addListener('message',  function (from,  to,  message) {
                     client.say(to, from + ": " + json["fields"]["summary"] + " - " + bugurl)
                 })
             }).on("error", function(error) {
-                log("Error accessing bug " + bug + ": " + error.message)
+                log.error("Error accessing bug " + bug + ": " + error.message)
             })
         })
     }
@@ -69,7 +67,7 @@ client.addListener('message',  function (from,  to,  message) {
 });
 
 client.addListener('error', function(message) {
-    log('irc error: ',  message);
+    log.error('irc error: ',  message);
 });
 
 gerrit.on("comment", function(comment) {

@@ -2,12 +2,10 @@ var ssh = require("ssh2")
 var events = require("events")
 var irc = require("irc")
 var config = require("./config")
+var log = require("./log.js")
+log.areaName = "gerrit"
 
 var emitter = new events.EventEmitter
-
-function log(msg) {
-    console.log("gerrit: " + msg)
-}
 
 function lookupAuthor(email) {
     if (email == "qt_sanity_bot@ovi.com")
@@ -63,7 +61,7 @@ function processComment(msg) {
     } else {
         message = change["subject"] + " from " + owner + " reviewed by " + author + ": " + approval_str + " - " + change["url"]
     }
-    log("comment: " + message)
+    log.info("comment: " + message)
     emitter.emit("comment", message);
 }
 
@@ -74,7 +72,7 @@ function processMerged(msg) {
     var submitter = lookupAuthor(msg["submitter"]["email"])
 
     var message = change["subject"] + " from " + owner + " staged by " + submitter + " - " + change["url"]
-    log("merged: " + message)
+    log.info("merged: " + message)
     emitter.emit("merged", message);
 }
 
@@ -88,7 +86,7 @@ function processCreated(msg) {
     else
         message = change["subject"] + " updated to v" + msg["patchSet"]["number"] + " by " + owner + " - " + change["url"]
 
-    log("created: " + message)
+    log.info("created: " + message)
     emitter.emit("created", message);
 }
 
@@ -99,7 +97,7 @@ function processAbandoned(msg) {
     var abandoner = lookupAuthor(change["abandoner"]["email"])
 
     message = change["subject"] + " from " + owner + " abandoned by " + abandoner + " - " + change["url"]
-    log("abandoned: " + message)
+    log.info("abandoned: " + message)
     emitter.emit("abandoned", message)
 }
 
@@ -123,20 +121,20 @@ var gerrit = new ssh;
 
 
 gerrit.on('connect', function() {
-    log("Gerrit connected");
+    log.info("Gerrit connected");
 });
 gerrit.on('ready', function() {
         gerrit.exec('gerrit stream-events', function(err, stream) {
-            log("Requesting event stream")
+            log.debug("Requesting event stream")
             if (err) {
-                log("Error from Gerrit stream-events: " + err + " - reconnecting")
+                log.error("Error from Gerrit stream-events: " + err + " - reconnecting")
                 gerrit.reconnect() // TODO: delay
                 return
             }
 
-            log("Streaming events from Gerrit");
+            log.debug("Streaming events from Gerrit");
             stream.on('data', function(data, extended) {
-                log(data)
+                log.debug(data)
                 var msg = JSON.parse(data)
                 if (msg["type"] == "comment-added")
                     processComment(msg)
@@ -149,25 +147,24 @@ gerrit.on('ready', function() {
                 else if (msg["type"] == "ref-updated")
                     ; // ignore
                 else
-                    log("Unknown type from gerrit: " + data)
+                    log.error("Unknown type from gerrit: " + data)
 
-                //log((extended === 'stderr' ? 'STDERR: ' : 'STDOUT: ') + data);
             });
             stream.on('end', function() {
-                log("Disconnected, attempting reconnect");
+                log.info("Disconnected, attempting reconnect");
                 gerrit.reconnect() // TODO: delay
             });
             stream.on('exit', function(code, signal) {
-                log('Stream :: exit :: code: ' + code + ', signal: ' + signal);
+                log.info('Stream :: exit :: code: ' + code + ', signal: ' + signal);
                 gerrit.end();
             });
         });
 });
 gerrit.on('error', function(err) {
-    log('Connection error: ' + err);
+    log.error('Connection error: ' + err);
 });
 gerrit.on('close', function(had_error) {
-  log('Connection closed, reconnecting');
+  log.error('Connection closed, reconnecting');
   gerrit.reconnect() // TODO: delay
 });
 
