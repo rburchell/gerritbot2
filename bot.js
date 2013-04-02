@@ -46,6 +46,11 @@ client.addListener('message',  function (from,  to,  message) {
                         return
                     }
 
+                    if (!json["fields"]) {
+                        log("Malformed response for bug " + bug)
+                        return
+                    }
+
                     var bugurl = "https://bugreports.qt-project.org/browse/" + bug
                     client.say(to, from + ": " + json["fields"]["summary"] + " - " + bugurl)
                 })
