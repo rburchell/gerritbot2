@@ -1,9 +1,6 @@
 immediate future
 ----------------
 
-- configuration for everything
-  (gerrit ssh key, nickname/etc, channels to join, "default" gerrit output
-   channel)
 - route gerrit messages to a configurable set of channels, based on the project
   (always the default one though)
 - color project names/branch names (see python bot for reference), should be
