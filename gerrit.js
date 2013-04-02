@@ -136,6 +136,7 @@ gerrit.on('ready', function() {
 
             log("Streaming events from Gerrit");
             stream.on('data', function(data, extended) {
+                log(data)
                 var msg = JSON.parse(data)
                 if (msg["type"] == "comment-added")
                     processComment(msg)
