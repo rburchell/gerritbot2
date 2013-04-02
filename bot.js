@@ -28,6 +28,11 @@ var client = new irc.Client(config.ircServer, "qt_gerrit", {
 client.addListener('message',  function (from,  to,  message) {
     log.debug(from + ' => ' + to + ': ' + message);
 
+    if (to[0] != '#') {
+        // assume it was to us privately, send to 'from'
+        to = from
+    }
+
     // jira bugs
     var bugs = message.match(/\b(Q[A-Z]+\-[0-9]+)\b/g)
     if (bugs) {
