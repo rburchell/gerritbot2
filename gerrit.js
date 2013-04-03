@@ -94,7 +94,7 @@ function processCreated(msg) {
 function processAbandoned(msg) {
     var change = msg["change"]
     var owner = lookupAuthor(change["owner"]["email"])
-    var abandoner = lookupAuthor(change["abandoner"]["email"])
+    var abandoner = lookupAuthor(msg["abandoner"]["email"])
 
     message = change["subject"] + " from " + owner + " abandoned by " + abandoner + " - " + change["url"]
     log.info("abandoned: " + message)
