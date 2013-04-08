@@ -6,7 +6,7 @@ var config = require("./config")
 var log = require("./log.js")
 log.areaName = "bot"
 
-var client = new irc.Client(config.ircServer, "qt_gerrit", {
+var client = new irc.Client(config.ircServer, config.ircNickName, {
     userName: "qt_gerrit",
     realName: "Qt Project IRC bot",
     port: config.ircServerPort,
