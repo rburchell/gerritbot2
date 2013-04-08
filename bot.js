@@ -45,7 +45,17 @@ client.addListener('message',  function (from,  to,  message) {
                     try {
                         json = JSON.parse(chunk)
                     } catch (err) {
+                        log.error("Error parsing JIRA response for bug " + bug + ", body: " + chunk)
+                        client.say(to, from + ": Error parsing JIRA response for bug " + bug)
+                        return
+                    }
+
+                    if (json["errorMessages"]) {
                         log.error("Error retrieving " + bug + ", body: " + chunk)
+                        json["errorMessages"].forEach(function(msg) {
+                            log.error("Error in JIRA response for bug " + bug + ": " + msg)
+                            client.say(to, from + ": Error from JIRA in response for bug " + bug + ": " + msg)
+                        })
                         return
                     }
 
