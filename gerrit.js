@@ -49,17 +49,19 @@ function processComment(msg) {
     if (approval_count == 1 && has_sanity_plusone == true)
         return // no need to spam sanity +1s
 
+    message = "[" + change["project"] + "/" + change["branch"] + "] "
+
     if (author == "Qt CI") {
         comment = msg["comment"]
         // special case to detect CI pass/fail;
         // old style includes the same message on every pass, new style includes more
         // information but the first line shall always end with ": SUCCESS" on pass.
         if (comment == "Successful integration\n\nNo regressions!" || comment.search(/^[^\n]+:\sSUCCESS\n/) >= 0)
-            message = change["subject"] + " from " + owner + irc.colors.wrap("dark_green", " _PASSED_") + " CI - " + change["url"]
+            message += change["subject"] + " from " + owner + irc.colors.wrap("dark_green", " _PASSED_") + " CI - " + change["url"]
         else
-            message = change["subject"] + " from " + owner + irc.colors.wrap("dark_red", " _FAILED_") + " CI - " + change["url"]
+            message += change["subject"] + " from " + owner + irc.colors.wrap("dark_red", " _FAILED_") + " CI - " + change["url"]
     } else {
-        message = change["subject"] + " from " + owner + " reviewed by " + author + ": " + approval_str + " - " + change["url"]
+        message += change["subject"] + " from " + owner + " reviewed by " + author + ": " + approval_str + " - " + change["url"]
     }
     log.info("comment: " + message)
     emitter.emit("comment", message);
@@ -70,8 +72,9 @@ function processMerged(msg) {
 
     var owner = lookupAuthor(change["owner"]["email"])
     var submitter = lookupAuthor(msg["submitter"]["email"])
+    var message = "[" + change["project"] + "/" + change["branch"] + "] "
 
-    var message = change["subject"] + " from " + owner + " staged by " + submitter + " - " + change["url"]
+    message += change["subject"] + " from " + owner + " staged by " + submitter + " - " + change["url"]
     log.info("merged: " + message)
     emitter.emit("merged", message);
 }
@@ -79,12 +82,12 @@ function processMerged(msg) {
 function processCreated(msg) {
     var change = msg["change"]
     var owner = lookupAuthor(change["owner"]["email"])
-    var message
+    var message = "[" + change["project"] + "/" + change["branch"] + "] "
 
     if (msg["patchSet"]["number"] == "1")
-        message = change["subject"] + " pushed by " + owner + " - " + change["url"]
+        message += change["subject"] + " pushed by " + owner + " - " + change["url"]
     else
-        message = change["subject"] + " updated to v" + msg["patchSet"]["number"] + " by " + owner + " - " + change["url"]
+        message += change["subject"] + " updated to v" + msg["patchSet"]["number"] + " by " + owner + " - " + change["url"]
 
     log.info("created: " + message)
     emitter.emit("created", message);
@@ -95,8 +98,9 @@ function processAbandoned(msg) {
     var change = msg["change"]
     var owner = lookupAuthor(change["owner"]["email"])
     var abandoner = lookupAuthor(msg["abandoner"]["email"])
+    var message = "[" + change["project"] + "/" + change["branch"] + "] "
 
-    message = change["subject"] + " from " + owner + " abandoned by " + abandoner + " - " + change["url"]
+    message += change["subject"] + " from " + owner + " abandoned by " + abandoner + " - " + change["url"]
     log.info("abandoned: " + message)
     emitter.emit("abandoned", message)
 }
