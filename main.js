@@ -7,19 +7,24 @@ var log = require("./log.js")
 log.areaName = "main"
 
 irc.client.on('bugRequested', function (from, to, bug) {
+    var receivedData = ""
     https.get("https://bugreports.qt-project.org/rest/api/2/issue/" + bug, function(res) {
         res.on("data", function(chunk) {
+            receivedData += chunk
+        })
+
+        res.on("end", function() {
             var json
             try {
-                json = JSON.parse(chunk)
+                json = JSON.parse(receivedData)
             } catch (err) {
-                log.error("Error parsing JIRA response for bug " + bug + ", body: " + chunk)
+                log.error("Error parsing JIRA response for bug " + bug + ", body: " + receivedData)
                 irc.client.say(to, from + ": Error parsing JIRA response for bug " + bug)
                 return
             }
 
             if (json["errorMessages"]) {
-                log.error("Error retrieving " + bug + ", body: " + chunk)
+                log.error("Error retrieving " + bug + ", body: " + receivedData)
                 json["errorMessages"].forEach(function(msg) {
                     log.error("Error in JIRA response for bug " + bug + ": " + msg)
                     irc.client.say(to, from + ": Error from JIRA in response for bug " + bug + ": " + msg)
