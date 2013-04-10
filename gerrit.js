@@ -7,8 +7,13 @@ log.areaName = "gerrit"
 
 var emitter = new events.EventEmitter
 
-function lookupAuthor(email) {
-    if (email == "qt_sanity_bot@ovi.com")
+function lookupAuthor(email, name) {
+    log.debug("Looking up author for " + email + " " + name)
+
+    if (email == undefined) // apparently email is not mandatory
+        return name
+
+    if (email == "qt_sanitybot@qt-project.org")
         return "Qt Sanity Bot"
     else if (email == "ci-noreply@qt-project.org")
         return "Qt CI"
@@ -16,10 +21,11 @@ function lookupAuthor(email) {
 }
 
 // bot: data from gerrit: {"type":"comment-added","change":{"project":"test/project","branch":"master","id":"I6431abaee29306dbcb6a04564c832eaac865c177","number":"11693","subject":"test-03","owner":{"name":"Sergio Ahumada","email":"sergio.ahumada@digia.com"},"url":"https://codereview.qt-project.org/11693"},"patchSet":{"number":"1","revision":"d404415faeaea2880ff4f943b4abcf2149ca04b3","ref":"refs/changes/93/11693/1","uploader":{"name":"Sergio Ahumada","email":"sergio.ahumada@digia.com"}},"author":{"name":"Robin Burchell","email":"robin+qt@viroteck.net"},"comment":"test"}
+
 function processComment(msg) {
     var change = msg["change"]
-    var owner = lookupAuthor(change["owner"]["email"])
-    var author = lookupAuthor(msg["author"]["email"])
+    var owner = lookupAuthor(change["owner"]["email"], change["owner"]["name"])
+    var author = lookupAuthor(msg["author"]["email"], msg["author"]["name"])
     var approvals = msg["approvals"] || []
     var approval_str = ""
     var approval_count = 0
@@ -70,8 +76,8 @@ function processComment(msg) {
 function processMerged(msg) {
     var change = msg["change"]
 
-    var owner = lookupAuthor(change["owner"]["email"])
-    var submitter = lookupAuthor(msg["submitter"]["email"])
+    var owner = lookupAuthor(change["owner"]["email"], change["owner"]["name"])
+    var submitter = lookupAuthor(msg["submitter"]["email"], msg["submitter"]["name"])
     var message = "[" + change["project"] + "/" + change["branch"] + "] "
 
     message += change["subject"] + " from " + owner + " staged by " + submitter + " - " + change["url"]
@@ -81,7 +87,7 @@ function processMerged(msg) {
 
 function processCreated(msg) {
     var change = msg["change"]
-    var owner = lookupAuthor(change["owner"]["email"])
+    var owner = lookupAuthor(change["owner"]["email"], change["owner"]["name"])
     var message = "[" + change["project"] + "/" + change["branch"] + "] "
 
     if (msg["patchSet"]["number"] == "1")
@@ -96,8 +102,8 @@ function processCreated(msg) {
 // gerrit: Unknown type from gerrit: {"type":"change-abandoned","change":{"project":"qt/qtbase","branch":"dev","id":"I685c2ea91dbc6ab18b063bb7e8f0f50fbfa686ac","number":"45686","subject":"Window activation: support new focus reason: Qt::InputPanelFocusReason","owner":{"name":"Richard Moe Gustavsen","email":"richard.gustavsen@digia.com"},"url":"https://codereview.qt-project.org/45686"},"abandoner":{"name":"Richard Moe Gustavsen","email":"richard.gustavsen@digia.com"},"reason":""}
 function processAbandoned(msg) {
     var change = msg["change"]
-    var owner = lookupAuthor(change["owner"]["email"])
-    var abandoner = lookupAuthor(msg["abandoner"]["email"])
+    var owner = lookupAuthor(change["owner"]["email"], change["owner"]["name"])
+    var abandoner = lookupAuthor(msg["abandoner"]["email"], msg["abandoner"]["name"])
     var message = "[" + change["project"] + "/" + change["branch"] + "] "
 
     message += change["subject"] + " from " + owner + " abandoned by " + abandoner + " - " + change["url"]
