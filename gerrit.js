@@ -145,7 +145,13 @@ gerrit.on('ready', function() {
             log.debug("Streaming events from Gerrit");
             stream.on('data', function(data, extended) {
                 log.debug(data)
-                var msg = JSON.parse(data)
+                try {
+                    var msg = JSON.parse(data)
+                } catch (err) {
+                    log.error("Gerrit returned malformed json")
+                    gerrit.reconnect()
+                    return
+                }
                 if (msg["type"] == "comment-added")
                     processComment(msg)
                 else if (msg["type"] == "change-merged")
