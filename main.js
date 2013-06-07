@@ -46,7 +46,7 @@ irc.client.on('bugRequested', function (from, to, bug) {
 })
 
 irc.client.on('changeIdRequested', function (from, to, changeId) {
-    irc.client.say(to, "https://codereview.qt-project.org/#q," + change + ",n,z")
+    irc.client.say(to, "https://codereview.qt-project.org/#q," + changeId + ",n,z")
 })
 
 
