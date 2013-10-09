@@ -37,8 +37,13 @@ irc.client.on('bugRequested', function (from, to, bug) {
                 return
             }
 
+            // TODO: parse person the message is going to, and direct the reply
+            // to them
+            // [12:05:11] <ossi|tt> w00t: because then it's fairly trivial to do
+            // that user addressing thing: m/^([^ ]+)[:, >] /; match $1 against
+            // the nicklist to eliminate false positives, done.
             var bugurl = "https://bugreports.qt-project.org/browse/" + bug
-            irc.client.say(to, from + ": " + json["fields"]["summary"] + " - " + bugurl)
+            irc.client.say(to, json["fields"]["summary"] + " - " + bugurl)
         })
     }).on("error", function(error) {
         log.error("Error accessing bug " + bug + ": " + error.message)
