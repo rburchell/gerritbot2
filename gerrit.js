@@ -138,7 +138,8 @@ gerrit.on('ready', function() {
             log.debug("Requesting event stream")
             if (err) {
                 log.error("Error from Gerrit stream-events: " + err + " - reconnecting")
-                gerrit.reconnect() // TODO: delay
+                gerrit.close()
+//                gerrit.reconnect() // TODO: delay
                 return
             }
 
@@ -149,7 +150,8 @@ gerrit.on('ready', function() {
                     var msg = JSON.parse(data)
                 } catch (err) {
                     log.error("Gerrit returned malformed json")
-                    gerrit.reconnect()
+                    gerrit.close()
+//                    gerrit.reconnect()
                     return
                 }
                 if (msg["type"] == "comment-added")
@@ -167,12 +169,12 @@ gerrit.on('ready', function() {
 
             });
             stream.on('end', function() {
-                log.info("Disconnected, attempting reconnect");
-                gerrit.reconnect() // TODO: delay
+                log.info("Disconnected, attempting reconnect COMMENTED OUT");
+//                gerrit.reconnect() // TODO: delay
             });
             stream.on('exit', function(code, signal) {
                 log.info('Stream :: exit :: code: ' + code + ', signal: ' + signal);
-                gerrit.end();
+                gerrit.close();
             });
         });
 });
@@ -180,8 +182,8 @@ gerrit.on('error', function(err) {
     log.error('Connection error: ' + err);
 });
 gerrit.on('close', function(had_error) {
-  log.error('Connection closed, reconnecting');
-  gerrit.reconnect() // TODO: delay
+    log.error('Connection closed, reconnecting COMMENTED OUT');
+//    gerrit.reconnect() // TODO: delay
 });
 
 gerrit.reconnect()
