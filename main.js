@@ -68,4 +68,9 @@ gerrit.on("created", function(created) {
 gerrit.on("abandoned", function(abandoned) {
     irc.client.say(config.ircChannels[0], abandoned)
 })
-
+gerrit.on("deferred", function(deferred) {
+    irc.client.say(config.ircChannels[0], deferred)
+})
+gerrit.on("restored", function(restored) {
+    irc.client.say(config.ircChannels[0], restored)
+})

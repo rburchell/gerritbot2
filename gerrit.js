@@ -99,6 +99,30 @@ function processCreated(msg) {
     emitter.emit("created", message);
 }
 
+// main: ERROR: Unknown type from gerrit: {"type":"change-deferred","change":{"project":"qt/qtbase","branch":"dev","id":"I03c19d622bf3c3289cd16482cff704489de7a015","number":"74473","subject":"WIP: Utility for generating Qt Appx Frameworks","owner":{"name":"Andrew Knight","email":"andrew.knight@digia.com"},"url":"https://codereview.qt-project.org/74473"},"deferrer":{"name":"Andrew Knight","email":"andrew.knight@digia.com"},"reason":""}
+function processDeferred(msg) {
+    var change = msg["change"]
+    var owner = lookupAuthor(change["owner"]["email"], change["owner"]["name"])
+    var deferrer = lookupAuthor(msg["deferrer"]["email"], msg["deferrer"]["name"])
+    var message = "[" + change["project"] + "/" + change["branch"] + "] "
+
+    message += change["subject"] + " from " + owner + " deferred by " + deferrer + " - " + change["url"]
+    log.info("deferred: " + message)
+    emitter.emit("deferred", message)
+}
+
+// main: ERROR: Unknown type from gerrit: {"type":"change-restored","change":{"project":"qt/qtwayland","branch":"stable","id":"Ie9ad14b8d8230cfd3b2772511b853d71f2eed977","number":"79284","subject":"Error out if dependencies aren\u0027t met.","owner":{"name":"Robin Burchell","email":"robin+qt@viroteck.net"},"url":"https://codereview.qt-project.org/79284"},"restorer":{"name":"Robin Burchell","email":"robin+qt@viroteck.net"},"reason":"sorry for the noise"}
+function processRestored(msg) {
+    var change = msg["change"]
+    var owner = lookupAuthor(change["owner"]["email"], change["owner"]["name"])
+    var restorer = lookupAuthor(msg["restorer"]["email"], msg["restorer"]["name"])
+    var message = "[" + change["project"] + "/" + change["branch"] + "] "
+
+    message += change["subject"] + " from " + owner + " restored by " + restorer + " - " + change["url"]
+    log.info("restored: " + message)
+    emitter.emit("restored", message)
+}
+
 // gerrit: Unknown type from gerrit: {"type":"change-abandoned","change":{"project":"qt/qtbase","branch":"dev","id":"I685c2ea91dbc6ab18b063bb7e8f0f50fbfa686ac","number":"45686","subject":"Window activation: support new focus reason: Qt::InputPanelFocusReason","owner":{"name":"Richard Moe Gustavsen","email":"richard.gustavsen@digia.com"},"url":"https://codereview.qt-project.org/45686"},"abandoner":{"name":"Richard Moe Gustavsen","email":"richard.gustavsen@digia.com"},"reason":""}
 function processAbandoned(msg) {
     var change = msg["change"]
@@ -160,8 +184,12 @@ gerrit.on('ready', function() {
                     processMerged(msg)
                 else if (msg["type"] == "patchset-created")
                     processCreated(msg)
+                else if (msg["type"] == "change-deferred")
+                    processDeferred(msg)
                 else if (msg["type"] == "change-abandoned")
                     processAbandoned(msg)
+                else if (msg["type"] == "change-restored")
+                    processRestored(msg)
                 else if (msg["type"] == "ref-updated")
                     ; // ignore
                 else
