@@ -3,6 +3,7 @@ var events = require("events")
 var irc = require("irc")
 var config = require("./config")
 var log = require("./log.js")
+var sys = require("sys")
 log.areaName = "gerrit"
 
 var emitter = new events.EventEmitter
@@ -136,34 +137,28 @@ function processAbandoned(msg) {
 }
 
 // a cheat
-ssh.prototype.reconnect = function() {
-    try {
-        gerrit.end()
-    } catch (err) {
-        // probably just already connected
-    }
-
-    gerrit.connect({
+ssh.prototype.easyConnect = function() {
+    this.connect({
         host: "codereview.qt-project.org",
         port: 29418,
         username: 'w00t',
-        privateKey: require('fs').readFileSync(config.gerritSshKey)
+        privateKey: require('fs').readFileSync(config.gerritSshKey),
+        pingInterval: 40000
     });
 }
 
-var gerrit = new ssh;
+function redo() {
+    var gerrit = new ssh;
 
-
-gerrit.on('connect', function() {
-    log.info("Gerrit connected");
-});
-gerrit.on('ready', function() {
+    gerrit.on('connect', function() {
+        log.info("Gerrit connected");
+    });
+    gerrit.on('ready', function() {
         gerrit.exec('gerrit stream-events', function(err, stream) {
             log.debug("Requesting event stream")
             if (err) {
-                log.error("Error from Gerrit stream-events: " + err + " - reconnecting")
-                gerrit.close()
-//                gerrit.reconnect() // TODO: delay
+                log.error("Error from Gerrit stream-events: " + err + " - ending")
+                gerrit.end()
                 return
             }
 
@@ -174,8 +169,7 @@ gerrit.on('ready', function() {
                     var msg = JSON.parse(data)
                 } catch (err) {
                     log.error("Gerrit returned malformed json")
-                    gerrit.close()
-//                    gerrit.reconnect()
+                    gerrit.end();
                     return
                 }
                 if (msg["type"] == "comment-added")
@@ -197,23 +191,25 @@ gerrit.on('ready', function() {
 
             });
             stream.on('end', function() {
-                log.info("Disconnected, attempting reconnect COMMENTED OUT");
-//                gerrit.reconnect() // TODO: delay
+                log.info("Stream disconnected, ending, COMMENTED OUT");
             });
             stream.on('exit', function(code, signal) {
-                log.info('Stream :: exit :: code: ' + code + ', signal: ' + signal);
-                gerrit.close();
+                log.info('Stream exit :: code: ' + code + ', signal: ' + signal);
+                gerrit.end();
             });
         });
-});
-gerrit.on('error', function(err) {
-    log.error('Connection error: ' + err);
-});
-gerrit.on('close', function(had_error) {
-    log.error('Connection closed, reconnecting COMMENTED OUT');
-//    gerrit.reconnect() // TODO: delay
-});
+    });
+    gerrit.on('error', function(err) {
+        log.error('Connection error: ' + err);
+    });
+    gerrit.on('close', function(had_error) {
+        log.error('Connection Closed, reconnecting');
+        setTimeout(redo, 5000);
+    });
 
-gerrit.reconnect()
+    gerrit.easyConnect()
+}
+
+redo();
 
 module.exports = emitter
