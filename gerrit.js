@@ -40,6 +40,12 @@ function processComment(msg) {
         else if (approvals[i]["value"] > 0)
             color = "dark_green"
 
+        // sanitize for newer gerrit which passes long form names
+        if (approvals[i]["type"] == "Code-Review")
+            approvals[i]["type"] = "CRVW"
+        else if (approvals[i]["type"] == "Sanity-Review")
+            approvals[i]["type"] = "SRVW"
+
         if (approvals[i]["type"] == "SRVW")
             reviewtype += "S"
         else
