@@ -51,7 +51,62 @@ irc.client.on('bugRequested', function (from, to, bug) {
 })
 
 irc.client.on('changeIdRequested', function (from, to, changeId) {
-    irc.client.say(to, "https://codereview.qt-project.org/#q," + changeId + ",n,z")
+    var receivedData = ""
+    https.get("https://codereview.qt-project.org/changes/" + changeId, function(res) {
+        res.on("data", function(chunk) {
+            receivedData += chunk
+        })
+
+        res.on("end", function() {
+            // From the Gerrit documentation:
+            // To prevent against Cross Site Script Inclusion (XSSI) attacks, the JSON
+            // response body starts with a magic prefix line that must be stripped before
+            // feeding the rest of the response body to a JSON parser:
+            //    )]}'
+            //    [ ... valid JSON ... ]
+            var lines = receivedData.split('\n');
+            lines.splice(0,1);
+            receivedData = lines.join('\n');
+
+            var json
+            try {
+                json = JSON.parse(receivedData)
+            } catch (err) {
+                log.error("Error parsing Gerrit response for change " + changeId + ", body: " + receivedData)
+                irc.client.say(to, from + ": Error parsing JIRA response for change " + changeId)
+                return
+            }
+
+            /*
+            {
+                    "kind": "gerritcodereview#change",
+                    "id": "qt-creator%2Fqt-creator~master~Iac6c9fe1ada27ac0d96417e490cc5723e6969541",
+                    "project": "qt-creator/qt-creator",
+                    "branch": "master",
+                    "change_id": "Iac6c9fe1ada27ac0d96417e490cc5723e6969541",
+                    "subject": "C++: move post-sourceprocessing action into callback.",
+                    "status": "MERGED",
+                    "created": "2014-06-06 12:41:43.937000000",
+                    "updated": "2014-06-18 09:04:35.443000000",
+                    "_sortkey": "002dd7e0000153d5",
+                    "_number": 86997,
+                    "owner": {
+                            "name": "Erik Verbruggen"
+                    }
+            }
+            */
+
+            if (!json["id"]) {
+                log.error("Malformed response for change " + changeId)
+                return
+            }
+
+            irc.client.say(to, "[" + json["project"] + "/" + json["branch"] + "] " + json["subject"] +
+                               " from " + json["owner"]["name"] + " https://codereview.qt-project.org/" + json["_number"] + " (" + json["status"] + ")")
+        })
+    }).on("error", function(error) {
+        log.error("Error accessing change " + changeId + ": " + error.message)
+    })
 })
 
 
