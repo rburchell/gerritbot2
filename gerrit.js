@@ -9,7 +9,7 @@ log.areaName = "gerrit"
 var emitter = new events.EventEmitter
 
 function lookupAuthor(email, name) {
-    log.debug("Looking up author for " + email + " " + name)
+//    log.debug("Looking up author for " + email + " " + name)
 
     if (email == undefined) // apparently email is not mandatory
         return name
