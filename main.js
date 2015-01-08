@@ -8,7 +8,7 @@ log.areaName = "main"
 
 irc.client.on('bugRequested', function (from, to, bug) {
     var receivedData = ""
-    https.get("https://bugreports.qt-project.org/rest/api/2/issue/" + bug, function(res) {
+    https.get("https://bugreports.qt.io/rest/api/2/issue/" + bug, function(res) {
         res.on("data", function(chunk) {
             receivedData += chunk
         })
@@ -42,7 +42,7 @@ irc.client.on('bugRequested', function (from, to, bug) {
             // [12:05:11] <ossi|tt> w00t: because then it's fairly trivial to do
             // that user addressing thing: m/^([^ ]+)[:, >] /; match $1 against
             // the nicklist to eliminate false positives, done.
-            var bugurl = "https://bugreports.qt-project.org/browse/" + bug
+            var bugurl = "https://bugreports.qt.io/browse/" + bug
             irc.client.say(to, json["fields"]["summary"] + " - " + bugurl)
         })
     }).on("error", function(error) {
