@@ -76,7 +76,7 @@ function processComment(msg) {
     } else {
         message += change["subject"] + " from " + owner + " reviewed by " + author + ": " + approval_str + " - " + change["url"]
     }
-    log.info("comment: " + message)
+    // log.info("comment: " + message)
     emitter.emit("comment", message);
 }
 
@@ -88,7 +88,7 @@ function processMerged(msg) {
     var message = "[" + change["project"] + "/" + change["branch"] + "] "
 
     message += change["subject"] + " from " + owner + " staged by " + submitter + " - " + change["url"]
-    log.info("merged: " + message)
+    // log.info("merged: " + message)
     emitter.emit("merged", message);
 }
 
@@ -102,7 +102,7 @@ function processCreated(msg) {
     else
         message += change["subject"] + " updated to v" + msg["patchSet"]["number"] + " by " + owner + " - " + change["url"]
 
-    log.info("created: " + message)
+    // log.info("created: " + message)
     emitter.emit("created", message);
 }
 
@@ -114,7 +114,7 @@ function processDeferred(msg) {
     var message = "[" + change["project"] + "/" + change["branch"] + "] "
 
     message += change["subject"] + " from " + owner + " deferred by " + deferrer + " - " + change["url"]
-    log.info("deferred: " + message)
+    // log.info("deferred: " + message)
     emitter.emit("deferred", message)
 }
 
@@ -126,7 +126,7 @@ function processRestored(msg) {
     var message = "[" + change["project"] + "/" + change["branch"] + "] "
 
     message += change["subject"] + " from " + owner + " restored by " + restorer + " - " + change["url"]
-    log.info("restored: " + message)
+    // log.info("restored: " + message)
     emitter.emit("restored", message)
 }
 
@@ -138,7 +138,7 @@ function processAbandoned(msg) {
     var message = "[" + change["project"] + "/" + change["branch"] + "] "
 
     message += change["subject"] + " from " + owner + " abandoned by " + abandoner + " - " + change["url"]
-    log.info("abandoned: " + message)
+    // log.info("abandoned: " + message)
     emitter.emit("abandoned", message)
 }
 
@@ -182,7 +182,7 @@ function redo() {
 
             log.debug("Streaming events from Gerrit");
             stream.on('data', function(data, extended) {
-                log.debug(data)
+                // log.debug(data)
                 try {
                     var msg = JSON.parse(data)
                 } catch (err) {
