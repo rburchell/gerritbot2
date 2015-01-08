@@ -142,6 +142,18 @@ function processAbandoned(msg) {
     emitter.emit("abandoned", message)
 }
 
+// main: ERROR: Unknown type from gerrit: {"type":"merge-failed","change":{"project":"qt/qt5","branch":"dev","id":"Id70b584123dc6174848947029ee034593ccc42e0","number":"99749","subject":"Qt3D depends upon qtimageformats module remove the !wince condition","owner":{"name":"Sean Harmer","email":"sean.harmer@kdab.com","username":"seanharmer"},"url":"https://codereview.qt-project.org/99749"},"patchSet":{"number":"2","revision":"182234398ad88232c959c28bf3bd6e4cb193aa6a","parents":["a17124e83136988e6fd9dc1d3d6928900e9bdfbc"],"ref":"refs/changes/49/99749/2","uploader":{"name":"Sean Harmer","email":"sean.harmer@kdab.com","username":"seanharmer"},"createdOn":1419262251,"author":{"name":"Sean Harmer","email":"sean.harmer@kdab.com","username":"seanharmer"},"sizeInsertions":1,"sizeDeletions":-1},"submitter":{"name":"Sean Harmer","email":"sean.harmer@kdab.com","username":"seanharmer"},"reason":"Your change could not be merged due to a path conflict.\n\nMake sure you staged all dependencies of this change. If the change has dependencies which are currently INTEGRATING, try again when the integration finishes.\n\nOtherwise please rebase the change locally and upload the rebased commit for review."}
+function processMergeFailed(msg) {
+    var change = msg["change"]
+    var owner = lookupAuthor(change["owner"]["email"], change["owner"]["name"])
+    var submitter = lookupAuthor(msg["submitter"]["email"], msg["submitter"]["name"]);
+    var message = "[" + change["project"] + "/" + change["branch"] + "] "
+
+    message += change["subject"] + " from " + owner + " could not be merged: by " + submitter + ": " + msg["reason"].split("\n")[0] + " - " + change["url"]
+    log.info("mergeFailed: " + message)
+    emitter.emit("mergeFailed", message)
+}
+
 // a cheat
 ssh.prototype.easyConnect = function() {
     this.connect({
@@ -192,9 +204,12 @@ function redo() {
                     processRestored(msg)
                 else if (msg["type"] == "ref-updated")
                     ; // ignore
+                else if (msg["type"] == "reviewer-added")
+                    ; // deliberately ignored, too spammy
+                else if (msg["type"] == "merge-failed")
+                    processMergeFailed(msg)
                 else
-                    log.error("Unknown type from gerrit: " + data)
-
+                    log.error("Ignoring unknown message from gerrit: " + data)
             });
             stream.on('end', function() {
                 log.info("Stream disconnected, ending, COMMENTED OUT");

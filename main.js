@@ -129,3 +129,6 @@ gerrit.on("deferred", function(deferred) {
 gerrit.on("restored", function(restored) {
     irc.client.say(config.ircChannels[0], restored)
 })
+gerrit.on("mergeFailed", function(merger) {
+    irc.client.say(config.ircChannels[0], merger)
+})
