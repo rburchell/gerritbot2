@@ -159,7 +159,7 @@ ssh.prototype.easyConnect = function() {
     this.connect({
         host: "codereview.qt-project.org",
         port: 29418,
-        username: 'w00t',
+        username: 'gerritbot',
         privateKey: require('fs').readFileSync(config.gerritSshKey),
         pingInterval: 40000
     });
